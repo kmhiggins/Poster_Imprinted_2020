@@ -1,0 +1,71 @@
+---
+title: "Table of Genes in TEs"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(formattable)
+library(gtools)
+
+#Read in data
+Gene_in_TE <- read.table("genes_within_TEs_features.txt", sep = "\t", header = TRUE)
+
+TE_in_Gene <- read.table("matTE_closest_gene_is_MEG_v2.txt", sep = "\t", header = TRUE)
+
+#Format tables using formattable, then preview
+formattable(Gene_in_TE)
+formattable(TE_in_Gene)
+```
+
+```{r}
+#Subset tables to get rid of unneccesarry columns
+Gene_in_TE2 <- Gene_in_TE[-c(2:4,6:7,11:14)]
+
+#reorder columns
+Gene_in_TE2 <- Gene_in_TE2[c(1,5,2,3,4)]
+
+#Rename columns
+names(Gene_in_TE2)[names(Gene_in_TE2) == "gene"] <- "Gene ID"
+names(Gene_in_TE2)[names(Gene_in_TE2) == "imprint_gene"] <- "Gene Imprint"
+names(Gene_in_TE2)[names(Gene_in_TE2) == "imprint"] <- "TE imprint"
+names(Gene_in_TE2)[names(Gene_in_TE2) == "syntelog_gene"] <- "Gene Variability"
+names(Gene_in_TE2)[names(Gene_in_TE2) == "TE.order"] <- "TE superfamily"
+
+#Make pretty table
+Gene_in_TE2 <- formattable(Gene_in_TE2, 
+            align =c("l","c","c","c", "c"))
+
+#Subset tables to get rid of unneccesarry columns
+TE_in_Gene2 <- TE_in_Gene[-c(1, 7:10)]
+
+#sort by gene ID
+TE_in_Gene2 <- TE_in_Gene2[order(TE_in_Gene2$gene),]
+
+#reorder columns
+TE_in_Gene2 <- TE_in_Gene2[c(1,3,4,5,6,2)]
+
+#Rename columns
+names(TE_in_Gene2)[names(TE_in_Gene2) == "gene"] <- "Gene ID"
+names(TE_in_Gene2)[names(TE_in_Gene2) == "gene.type"] <- "Gene Imprint"
+names(TE_in_Gene2)[names(TE_in_Gene2) == "TE.type"] <- "TE imprint"
+names(TE_in_Gene2)[names(TE_in_Gene2) == "gene.variability"] <- "Gene Variability"
+names(TE_in_Gene2)[names(TE_in_Gene2) == "order"] <- "TE superfamily"
+
+#Format table based on location and duplicate genes
+distance_formatter <- formatter("distance", 
+                                   style = x ~ style(color = ifelse(x > 0, "red", ifelse(x < 0, "green", "black"))))
+
+
+#Make pretty table
+TE_in_Gene2 <- formattable(TE_in_Gene2,
+                      align = c("l","c","c","c","c"),
+                      list('distance' = distance_formatter))
+```
+

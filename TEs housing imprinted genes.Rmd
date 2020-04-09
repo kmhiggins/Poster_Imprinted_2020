@@ -1,0 +1,42 @@
+---
+title: "Imprinted genes in TEs"
+output: html_notebook
+---
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(RColorBrewer)
+
+#Read tables in 
+te <- read.table("B73_genes_within_TEs.txt", sep = "\t", header = TRUE)
+bw <- read.table("B73_vs_W22_imprinting_calls_withinfo_13Feb2020.txt", sep = "\t", header = TRUE)
+```
+
+
+
+```{r}
+#Merge te and bw to see which TEs contain genes and are imprinted
+
+nn <- merge(te, bw, by.x = "gene", by.y = "feature", all = FALSE)
+
+mm <- subset(nn, nn$imprint != "no.imprint")
+
+#Add TE family column so we can look at type of TE
+mm$TE_family = substring(mm$TE, 0, 3)
+
+TE_sum <- mm %>%
+  group_by(TE_family) %>%
+  summarize(n())
+```
+
+
+```{r}
+#visualize data
+hm <- table(mm$TE_family)
+tf <- barplot(hm, main="TE Families Housing Genes", xlab="Family", col = brewer.pal(n = 4, name = "YlGnBu"))
+
+```
+
